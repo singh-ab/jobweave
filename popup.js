@@ -70,9 +70,18 @@ async function initialize() {
 async function checkSummarizerAvailability() {
   if ("Summarizer" in self) {
     try {
-      const availability = await self.Summarizer.availability({
+      // Pass the same options we'll use for create() to ensure compatibility
+      const availabilityOptions = {
+        type: "key-points",
+        length: "medium",
+        format: "markdown",
         outputLanguage: "en",
-      });
+      };
+
+      console.log("Checking availability with options:", availabilityOptions);
+      const availability = await self.Summarizer.availability(
+        availabilityOptions
+      );
       console.log("Summarizer availability:", availability);
       updateModelStatus(availability);
     } catch (e) {
@@ -260,7 +269,11 @@ async function extractJobKeyPoints(jdText) {
   }
 
   // Check availability - this call doesn't need user gesture
+  // Pass the same options we'll use for create() to ensure compatibility
   const availability = await self.Summarizer.availability({
+    type: "key-points",
+    length: "medium",
+    format: "markdown",
     outputLanguage: "en",
   });
 
@@ -292,6 +305,7 @@ async function extractJobKeyPoints(jdText) {
   const summary = await summarizer.summarize(clean, {
     context:
       "Extract the key technical skills, required technologies, frameworks, and specific responsibilities from this job description. Focus on actionable requirements and technical competencies, not general descriptions or company overviews. List each as a concise bullet point.",
+    outputLanguage: "en", // Explicitly specify output language
   });
   return summary; // markdown bullet list expected
 }
@@ -436,6 +450,7 @@ async function createProofreader() {
   // Just try to create and handle errors gracefully
 
   proofreader = await self.Proofreader.create({
+    outputLanguage: "en", // Required: specify output language for safety attestation
     expectedInputLanguages: ["en"],
     monitor(m) {
       try {
