@@ -311,6 +311,21 @@ h1 {
   box-shadow: 0 1px 3px rgba(52, 168, 83, 0.3);
 }
 
+/* Label styled as button (for file inputs) */
+label.btn {
+  color: white !important;
+  text-align: center;
+  user-select: none;
+}
+
+label.btn-secondary {
+  color: white !important;
+}
+
+label.btn:hover {
+  color: white !important;
+}
+
 .btn-small {
   padding: 8px 14px;
   font-size: 12px;
