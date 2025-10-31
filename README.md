@@ -1,4 +1,4 @@
-# 🧵 Jobweave - AI Resume & Cover Letter Tailor
+# Jobweave - AI Resume & Cover Letter Tailor
 
 A privacy-first Chrome extension that uses Chrome's built-in AI (Gemini Nano) to tailor your resume bullets and generate targeted cover letters based on job descriptions. All processing happens locally on your device - no data ever leaves your computer.
 
@@ -56,7 +56,7 @@ A privacy-first Chrome extension that uses Chrome's built-in AI (Gemini Nano) to
   - No tracking or analytics
   - Works offline after initial setup
 
-## 🔧 Requirements
+## Requirements
 
 ### System Requirements
 
@@ -84,7 +84,7 @@ A privacy-first Chrome extension that uses Chrome's built-in AI (Gemini Nano) to
 
 **Note**: The Summarizer API is currently the only stable API used. Writer/Rewriter/Proofreader APIs are in origin trial and not required for core functionality.
 
-## 📦 Installation
+## Installation
 
 ### Development Installation
 
@@ -98,7 +98,7 @@ A privacy-first Chrome extension that uses Chrome's built-in AI (Gemini Nano) to
 
 On first use, the extension will download the Gemini Nano model (~22GB). This is a one-time process and may take several minutes depending on your connection speed.
 
-## 🚀 Usage
+## Usage
 
 ### Quick Start Workflow
 
@@ -110,13 +110,13 @@ On first use, the extension will download the Gemini Nano model (~22GB). This is
 2. **Add Job Description**
 
    - Paste the job description into the first text area
-   - OR click "📄 Capture from current page" if viewing a job posting
+   - OR click "Capture from current page" if viewing a job posting
    - The AI will analyze key requirements and skills
 
 3. **Add Your Resume** (Optional)
 
    - Paste 3-10 bullets about your experience
-   - OR click "📄 Upload Resume (PDF)" to upload your PDF resume
+   - OR click "Process Resume (PDF)" to upload your PDF resume
    - Text will be extracted automatically (client-side only)
 
 4. **Customize Settings**
@@ -127,14 +127,14 @@ On first use, the extension will download the Gemini Nano model (~22GB). This is
 
 5. **Generate**
 
-   - Click "🎯 Tailor Now"
+   - Click "Tailor Now"
    - Get 5 tailored resume bullets
    - Get a targeted cover letter draft
 
 6. **Use Results**
-   - Click "📋 Copy All Bullets" or "📋 Copy Letter"
-   - Click "🔁 Regenerate" for variations
-   - Click "💾 Save Version" to keep track of applications
+   - Click "Copy All Bullets" or "Copy Letter"
+   - Click "Regenerate" for variations
+   - Click "Save Version" to keep track of applications
 
 ### Side Panel Usage
 
@@ -142,7 +142,7 @@ On first use, the extension will download the Gemini Nano model (~22GB). This is
 2. Work with larger input areas while browsing job postings
 3. All features available in both popup and side panel
 
-## 🎨 Customization
+## Customization
 
 The extension saves your preferences automatically:
 
@@ -153,7 +153,7 @@ The extension saves your preferences automatically:
 
 Your preferences persist across sessions and apply to all future generations.
 
-## 🛠️ Technical Details
+## Technical Details
 
 ### Architecture
 
@@ -191,7 +191,7 @@ jobweave/
 └── docs/               # Documentation files
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Model Status Unknown" or "Model Unavailable"
 
@@ -202,7 +202,7 @@ jobweave/
 
 ### "Model needs to be downloaded"
 
-- Click "🎯 Tailor Now" to initiate the download (requires user gesture)
+- Click "Tailor Now" to initiate the download (requires user gesture)
 - First download requires ~22GB storage and may take 10-30 minutes
 - Ensure you have an unmetered (unlimited) internet connection
 - Check download progress in the Model Status card
@@ -235,13 +235,13 @@ jobweave/
 - Check Chrome DevTools console for errors
 - Try reloading the extension from `chrome://extensions/`
 
-## 📚 Resources
+## Resources
 
 - [Chrome AI Documentation](https://developer.chrome.com/docs/ai)
 - [Summarizer API Guide](https://developer.chrome.com/docs/ai/summarizer-api)
 - [Gemini Nano Information](https://developer.chrome.com/docs/ai/built-in)
 
-## 🎯 Current Features in Development
+## Current Features in Development
 
 Potential enhancements for future versions:
 
@@ -256,15 +256,15 @@ Potential enhancements for future versions:
 - **Batch Processing**: Tailor resume for multiple jobs at once
 - **Custom Templates**: User-defined cover letter templates
 
-## ⚖️ License
+## License
 
 This project is provided as-is for educational and personal use.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Feel free to submit issues or pull requests.
 
-## ⚠️ Important Notes
+## Important Notes
 
 - **Privacy**: All processing happens on your device - no data sent to servers
 - **Experimental API**: Requires Chrome's experimental AI features
@@ -274,7 +274,7 @@ Contributions are welcome! Feel free to submit issues or pull requests.
 - **Regional Availability**: API availability may vary by region and device
 - **Use Policy**: Review Google's [Generative AI Prohibited Uses Policy](https://policies.google.com/terms/generative-ai/use-policy)
 
-## 🔒 Privacy Commitment
+## Privacy Commitment
 
 **Your data never leaves your device:**
 
@@ -284,7 +284,7 @@ Contributions are welcome! Feel free to submit issues or pull requests.
 - No external API calls
 - No data collection whatsoever
 
-## 📝 Acknowledgments
+## Acknowledgments
 
 Built with:
 
@@ -292,12 +292,10 @@ Built with:
 - Mozilla's pdf.js - Client-side PDF parsing
 - Part of the Google Chrome Built-in AI initiative
 
-## 📄 License
+## License
 
-This project is provided as-is for educational and personal use.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+**Open Source with Attribution**: Use, modify, and distribute freely for personal or commercial projects. Requires attribution and notice of changes.
 
 ---
-
-**Find your perfect fit with Jobweave!** 🧵✨
-
-_Weaving your experience into every opportunity_
