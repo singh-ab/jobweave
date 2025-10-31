@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local Resume & Cover Letter Tailor</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Side panel specific styles - more space for inputs */
+      body {
+        min-width: 400px;
+        width: 100%;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .container {
+        max-width: 100%;
+        padding: 20px;
+      }
+      textarea {
+        min-height: 120px;
+      }
+      #jdInput {
+        min-height: 150px;
+      }
+      #resumeInput {
+        min-height: 150px;
+      }
+      .summary-output {
+        max-height: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📝 Local Resume & Cover Letter Tailor</h1>
+        <p class="subtitle">
+          On-device with Chrome's Built-in AI (Gemini Nano)
+        </p>
+      </header>
+
+      <!-- API Status (overall) -->
+      <div id="apiStatus" class="status-box">
+        <span class="status-indicator">●</span>
+        <span id="statusText">Checking AI availability...</span>
+      </div>
+
+      <!-- Per-API Status Matrix -->
+      <div id="apiMatrix" class="options-section" style="margin-top: -8px">
+        <div class="option-group">
+          <label>API status:</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <span id="statusSummarizer">Summarizer: …</span>
+            <span id="statusWriter">Writer: …</span>
+            <span id="statusRewriter">Rewriter: …</span>
+            <span id="statusProofreader">Proofreader: …</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Download Status -->
+      <div id="modelStatus" class="model-status-box" style="display: none">
+        <div class="model-status-header">
+          <span id="modelStatusIcon">📦</span>
+          <span id="modelStatusText">Model Status</span>
+          <button
+            id="refreshModelStatus"
+            class="btn-icon"
+            title="Refresh model status"
+          >
+            🔄
+          </button>
+        </div>
+        <div
+          id="modelProgressBar"
+          class="model-progress-bar"
+          style="display: none"
+        >
+          <div id="modelProgressFill" class="model-progress-fill"></div>
+        </div>
+        <p id="modelStatusDetail" class="model-status-detail"></p>
+      </div>
+
+      <!-- Inputs -->
+      <div class="input-section">
+        <label for="jdInput">Job Description</label>
+        <textarea
+          id="jdInput"
+          placeholder="Paste the job description here…"
+          rows="8"
+        ></textarea>
+        <div class="button-group" style="margin-top: 6px">
+          <button id="captureJD" class="btn btn-secondary">
+            📄 Capture from current page
+          </button>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <label for="resumeInput">Your Resume Bullets (optional)</label>
+        <textarea
+          id="resumeInput"
+          placeholder="Paste 3–10 bullets about your experience…"
+          rows="8"
+        ></textarea>
+      </div>
+
+      <!-- Configuration Options -->
+      <div class="options-section">
+        <div class="option-group">
+          <label for="toneSelect">Tone</label>
+          <select id="toneSelect">
+            <option value="professional" selected>Professional</option>
+            <option value="confident">Confident</option>
+            <option value="friendly">Friendly</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </div>
+
+        <div class="option-group">
+          <label for="bulletsLength">Bullets Length</label>
+          <select id="bulletsLength">
+            <option value="short">Short</option>
+            <option value="medium" selected>Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+
+        <div class="option-group">
+          <label for="letterLength">Cover Letter Length</label>
+          <select id="letterLength">
+            <option value="short">Short</option>
+            <option value="medium" selected>Medium</option>
+          </select>
+        </div>
+
+        <div class="option-group">
+          <label for="preferMetrics">Preferences</label>
+          <div>
+            <input type="checkbox" id="preferMetrics" />
+            <label for="preferMetrics"
+              >Prefer metrics (#, %, $) in bullets</label
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button id="tailorNow" class="btn btn-primary">🎯 Tailor Now</button>
+        <button id="regenBullets" class="btn btn-secondary" disabled>
+          🔁 Regenerate Bullets
+        </button>
+        <button id="regenLetter" class="btn btn-secondary" disabled>
+          ✉ Regenerate Letter
+        </button>
+      </div>
+
+      <!-- Progress Indicator -->
+      <div
+        id="progressContainer"
+        class="progress-container"
+        style="display: none"
+      >
+        <div class="progress-bar">
+          <div id="progressBar" class="progress-fill"></div>
+        </div>
+        <p id="progressText" class="progress-text">Processing...</p>
+      </div>
+
+      <!-- Results: Tailored Bullets -->
+      <div
+        id="bulletsContainer"
+        class="summary-container"
+        style="display: none"
+      >
+        <h3>Tailored Resume Bullets (5)</h3>
+        <div id="bulletsOutput" class="summary-output"></div>
+        <button id="copyBullets" class="btn btn-small">
+          📋 Copy All Bullets
+        </button>
+      </div>
+
+      <!-- Results: Cover Letter -->
+      <div id="letterContainer" class="summary-container" style="display: none">
+        <h3>Draft Cover Letter</h3>
+        <div id="letterOutput" class="summary-output"></div>
+        <button id="copyLetter" class="btn btn-small">📋 Copy Letter</button>
+      </div>
+
+      <!-- Versions -->
+      <div id="versionsContainer" class="options-section">
+        <div class="option-group">
+          <label>Versions</label>
+          <div style="display: flex; gap: 8px">
+            <button id="saveVersion" class="btn btn-small">
+              💾 Save Version
+            </button>
+            <button id="refreshVersions" class="btn btn-small">
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
+        <div
+          id="versionsList"
+          class="summary-output"
+          style="font-size: 12px; color: #5f6368"
+        ></div>
+      </div>
+
+      <!-- Error Display -->
+      <div id="errorContainer" class="error-container" style="display: none">
+        <h3>⚠️ Error:</h3>
+        <p id="errorText"></p>
+      </div>
+
+      <!-- Instructions -->
+      <div class="info-section">
+        <details>
+          <summary>ℹ️ How to use</summary>
+          <ul>
+            <li>Paste a job description (or capture from the current page)</li>
+            <li>Optionally paste your existing resume bullets</li>
+            <li>Pick tone and lengths, then click "Tailor Now"</li>
+            <li>
+              Get 5 tailored bullets + a cover letter draft, all on-device
+            </li>
+            <li>Click "Regenerate" to try different variations</li>
+            <li>Save versions for future reference</li>
+          </ul>
+        </details>
+        <details>
+          <summary>⚠️ Origin Trial Notice</summary>
+          <p style="font-size: 12px; color: #5f6368">
+            <strong>Writer, Rewriter, and Proofreader APIs</strong> are in
+            origin trial. For local testing, enable flags:<br />
+            <code>chrome://flags/#optimization-guide-on-device-model</code
+            ><br />
+            <code>chrome://flags/#text-safety-classifier</code><br />
+            For production, register at
+            <a href="https://developer.chrome.com/origintrials" target="_blank"
+              >Chrome Origin Trials</a
+            >
+            and add tokens to manifest.json.
+          </p>
+        </details>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
