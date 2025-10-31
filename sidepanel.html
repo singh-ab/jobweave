@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Local Resume & Cover Letter Tailor</title>
+    <title>Jobweave</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
       /* Side panel specific styles - more space for inputs */
@@ -34,30 +34,11 @@
   <body>
     <div class="container">
       <header>
-        <h1>📝 Local Resume & Cover Letter Tailor</h1>
+        <h1>🧵 Jobweave</h1>
         <p class="subtitle">
-          On-device with Chrome's Built-in AI (Gemini Nano)
+          Tailor your resume with Chrome's Built-in AI (Gemini Nano)
         </p>
       </header>
-
-      <!-- API Status (overall) -->
-      <div id="apiStatus" class="status-box">
-        <span class="status-indicator">●</span>
-        <span id="statusText">Checking AI availability...</span>
-      </div>
-
-      <!-- Per-API Status Matrix -->
-      <div id="apiMatrix" class="options-section" style="margin-top: -8px">
-        <div class="option-group">
-          <label>API status:</label>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap">
-            <span id="statusSummarizer">Summarizer: …</span>
-            <span id="statusWriter">Writer: …</span>
-            <span id="statusRewriter">Rewriter: …</span>
-            <span id="statusProofreader">Proofreader: …</span>
-          </div>
-        </div>
-      </div>
 
       <!-- Model Download Status -->
       <div id="modelStatus" class="model-status-box" style="display: none">
@@ -92,7 +73,7 @@
         ></textarea>
         <div class="button-group" style="margin-top: 6px">
           <button id="captureJD" class="btn btn-secondary">
-            📄 Capture from current page
+            Capture from current page
           </button>
         </div>
       </div>
@@ -104,6 +85,21 @@
           placeholder="Paste 3–10 bullets about your experience…"
           rows="8"
         ></textarea>
+        <div class="button-group" style="margin-top: 6px">
+          <label
+            for="uploadPdf"
+            class="btn btn-secondary"
+            style="cursor: pointer; margin: 0"
+          >
+            Upload Resume (PDF)
+            <input
+              type="file"
+              id="uploadPdf"
+              accept="application/pdf,.pdf"
+              style="display: none"
+            />
+          </label>
+        </div>
       </div>
 
       <!-- Configuration Options -->
@@ -148,9 +144,9 @@
 
       <!-- Action Buttons -->
       <div class="button-group">
-        <button id="tailorNow" class="btn btn-primary">🎯 Tailor Now</button>
+        <button id="tailorNow" class="btn btn-primary">Tailor Now</button>
         <button id="regenBullets" class="btn btn-secondary" disabled>
-          🔁 Regenerate Bullets
+          Regenerate Bullets
         </button>
         <button id="regenLetter" class="btn btn-secondary" disabled>
           ✉ Regenerate Letter

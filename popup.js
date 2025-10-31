@@ -1,13 +1,5 @@
 // DOM Elements (updated for resume tailor)
 const elements = {
-  // top status
-  apiStatus: document.getElementById("apiStatus"),
-  statusText: document.getElementById("statusText"),
-  // per-API status
-  statusSummarizer: document.getElementById("statusSummarizer"),
-  statusWriter: document.getElementById("statusWriter"),
-  statusRewriter: document.getElementById("statusRewriter"),
-  statusProofreader: document.getElementById("statusProofreader"),
   // model status card
   modelStatus: document.getElementById("modelStatus"),
   modelStatusIcon: document.getElementById("modelStatusIcon"),
@@ -20,6 +12,7 @@ const elements = {
   jdInput: document.getElementById("jdInput"),
   captureJD: document.getElementById("captureJD"),
   resumeInput: document.getElementById("resumeInput"),
+  uploadPdf: document.getElementById("uploadPdf"),
   toneSelect: document.getElementById("toneSelect"),
   bulletsLength: document.getElementById("bulletsLength"),
   letterLength: document.getElementById("letterLength"),
@@ -58,10 +51,9 @@ async function initialize() {
   try {
     console.log("=== Resume Tailor Initialization ===");
     console.log("Chrome version:", navigator.userAgent);
-    updateStatus("loading", "Checking AI availability...");
 
-    // Per-API availability checks
-    await refreshApiStatuses();
+    // Check Summarizer availability and update model status
+    await checkSummarizerAvailability();
 
     // Load saved preferences and versions
     await loadPreferences();
@@ -70,15 +62,27 @@ async function initialize() {
     console.error("Initialization error:", error);
     console.error("Error stack:", error.stack);
     showError(`Initialization failed: ${error.message}`);
-    updateStatus("error", "Initialization failed");
     setActionsDisabled(true);
   }
 }
 
-// Update status indicator
-function updateStatus(state, message) {
-  if (elements.apiStatus) elements.apiStatus.className = `status-box ${state}`;
-  if (elements.statusText) elements.statusText.textContent = message;
+// Check Summarizer availability
+async function checkSummarizerAvailability() {
+  if ("Summarizer" in self) {
+    try {
+      const availability = await self.Summarizer.availability({
+        outputLanguage: "en",
+      });
+      console.log("Summarizer availability:", availability);
+      updateModelStatus(availability);
+    } catch (e) {
+      console.warn("Summarizer availability check failed:", e);
+      updateModelStatus("no");
+    }
+  } else {
+    console.warn("Summarizer API not supported");
+    updateModelStatus("no");
+  }
 }
 
 // Update model download status
@@ -286,7 +290,8 @@ async function extractJobKeyPoints(jdText) {
     throw new Error("Job description is too short. Paste more details.");
   }
   const summary = await summarizer.summarize(clean, {
-    context: "Extract the key technical skills, required technologies, frameworks, and specific responsibilities from this job description. Focus on actionable requirements and technical competencies, not general descriptions or company overviews. List each as a concise bullet point.",
+    context:
+      "Extract the key technical skills, required technologies, frameworks, and specific responsibilities from this job description. Focus on actionable requirements and technical competencies, not general descriptions or company overviews. List each as a concise bullet point.",
   });
   return summary; // markdown bullet list expected
 }
@@ -553,7 +558,10 @@ async function tailorResumeBullets(jdSummary, resumeText, preferMetrics) {
       // Convert requirement to past-tense achievement
       let achievement = jdBullet
         .replace(/^experience (with|in)/i, "Delivered projects using")
-        .replace(/^hands-on experience with/i, "Built interactive features using")
+        .replace(
+          /^hands-on experience with/i,
+          "Built interactive features using"
+        )
         .replace(/^proficiency in/i, "Leveraged")
         .replace(/^strong command of/i, "Applied expertise in")
         .replace(/^knowledge of/i, "Utilized")
@@ -561,18 +569,24 @@ async function tailorResumeBullets(jdSummary, resumeText, preferMetrics) {
         .replace(/^understanding of/i, "Applied concepts of")
         .replace(/^working knowledge of/i, "Implemented solutions using")
         .replace(/^(must have|should have|required):/i, "Demonstrated:")
-        .replace(/\b(is required|are required|is preferred|are preferred|is a plus|is an advantage)\b/gi, "")
+        .replace(
+          /\b(is required|are required|is preferred|are preferred|is a plus|is an advantage)\b/gi,
+          ""
+        )
         .replace(/\s+/g, " ")
         .trim();
 
       // Only add action verb if the sentence doesn't already start with one
-      const hasActionVerb = /^(Led|Developed|Managed|Created|Built|Designed|Implemented|Optimized|Delivered|Applied|Utilized|Leveraged|Worked|Integrated|Maintained|Debugged|Collaborated|Ensured|Deployed|Profiled)/i.test(
-        achievement
-      );
+      const hasActionVerb =
+        /^(Led|Developed|Managed|Created|Built|Designed|Implemented|Optimized|Delivered|Applied|Utilized|Leveraged|Worked|Integrated|Maintained|Debugged|Collaborated|Ensured|Deployed|Profiled)/i.test(
+          achievement
+        );
 
       if (!hasActionVerb && achievement.length >= 20) {
         // Check if it's a technology list or skill description
-        if (/^[A-Z][a-z]+(\s+(and|or|\/)\s+[A-Z]|\s*[,\/])/i.test(achievement)) {
+        if (
+          /^[A-Z][a-z]+(\s+(and|or|\/)\s+[A-Z]|\s*[,\/])/i.test(achievement)
+        ) {
           // Technology list: prefix with appropriate verb
           achievement = "Developed solutions using " + achievement;
         } else {
@@ -595,6 +609,82 @@ async function tailorResumeBullets(jdSummary, resumeText, preferMetrics) {
   }
 
   return bullets.slice(0, targetCount);
+}
+
+// Handle PDF upload and text extraction
+async function handlePdfUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+    showError("Please select a valid PDF file.");
+    return;
+  }
+
+  showProgress("Reading PDF...");
+  setActionsDisabled(true);
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const typedArray = new Uint8Array(arrayBuffer);
+
+    // Dynamically import pdf.js
+    const pdfjsLib = await import(chrome.runtime.getURL("lib/pdf.mjs"));
+
+    // Set worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      chrome.runtime.getURL("lib/pdf.worker.mjs");
+
+    // Load the PDF document
+    const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+    let fullText = "";
+
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+
+      // Combine text items with spaces
+      const pageText = textContent.items
+        .map((item) => item.str)
+        .join(" ")
+        .trim();
+
+      if (pageText) {
+        fullText += pageText + "\n\n";
+      }
+    }
+
+    // Clean up the extracted text
+    const cleanedText = fullText
+      .replace(/\s+/g, " ") // Replace multiple spaces with single space
+      .replace(/\n\s*\n\s*\n/g, "\n\n") // Remove excessive newlines
+      .trim();
+
+    if (cleanedText.length < 50) {
+      throw new Error(
+        "PDF appears to be empty or text could not be extracted."
+      );
+    }
+
+    // Populate the resume input
+    if (elements.resumeInput) {
+      elements.resumeInput.value = cleanedText;
+      console.log(`✓ Extracted ${cleanedText.length} characters from PDF`);
+    }
+
+    hideProgress();
+    hideError();
+
+    // Clear the file input so the same file can be selected again if needed
+    event.target.value = "";
+  } catch (error) {
+    console.error("PDF parsing failed:", error);
+    hideProgress();
+    showError(`Failed to parse PDF: ${error.message}`);
+  } finally {
+    setActionsDisabled(false);
+  }
 }
 
 async function draftCoverLetter(jdSummary, resumeText) {
@@ -684,98 +774,6 @@ function setActionsDisabled(disabled) {
   if (elements.tailorNow) elements.tailorNow.disabled = disabled;
   if (elements.regenBullets) elements.regenBullets.disabled = disabled;
   if (elements.regenLetter) elements.regenLetter.disabled = disabled;
-}
-
-// Per-API status helper
-async function refreshApiStatuses() {
-  // Default text while loading
-  const setText = (el, name, txt, ok = false) => {
-    if (!el) return;
-    el.textContent = `${name}: ${txt}`;
-    el.style.color = ok ? "#137333" : "#5f6368";
-  };
-
-  // Summarizer
-  if ("Summarizer" in self) {
-    try {
-      const a = await self.Summarizer.availability({ outputLanguage: "en" });
-      setText(
-        elements.statusSummarizer,
-        "Summarizer",
-        a,
-        a === "readily" || a === "available"
-      );
-      updateModelStatus(a);
-      updateStatus(
-        a === "unavailable"
-          ? "unavailable"
-          : a === "downloading" || a === "downloadable"
-          ? "loading"
-          : "ready",
-        `AI status: ${a}`
-      );
-    } catch (e) {
-      setText(elements.statusSummarizer, "Summarizer", "error");
-      console.warn("Summarizer availability failed", e);
-    }
-  } else {
-    setText(elements.statusSummarizer, "Summarizer", "not supported");
-  }
-
-  // Writer
-  if ("Writer" in self) {
-    try {
-      const a = await self.Writer.availability({ outputLanguage: "en" });
-      setText(
-        elements.statusWriter,
-        "Writer",
-        a,
-        a === "readily" || a === "available"
-      );
-    } catch (e) {
-      setText(elements.statusWriter, "Writer", "error - enable flags");
-      console.warn("Writer availability failed:", e.message || e);
-    }
-  } else {
-    setText(elements.statusWriter, "Writer", "not supported");
-  }
-
-  // Rewriter
-  if ("Rewriter" in self) {
-    try {
-      const a = await self.Rewriter.availability({ outputLanguage: "en" });
-      setText(
-        elements.statusRewriter,
-        "Rewriter",
-        a,
-        a === "readily" || a === "available"
-      );
-    } catch (e) {
-      setText(elements.statusRewriter, "Rewriter", "error - enable flags");
-      console.warn("Rewriter availability failed:", e.message || e);
-    }
-  } else {
-    setText(elements.statusRewriter, "Rewriter", "not supported");
-  }
-
-  // Proofreader
-  if ("Proofreader" in self) {
-    try {
-      const a = await self.Proofreader.availability({
-        expectedInputLanguages: ["en"],
-      });
-      setText(
-        elements.statusProofreader,
-        "Proofreader",
-        a,
-        a === "readily" || a === "available"
-      );
-    } catch {
-      setText(elements.statusProofreader, "Proofreader", "error");
-    }
-  } else {
-    setText(elements.statusProofreader, "Proofreader", "not supported");
-  }
 }
 
 // Tailor action: full pipeline
@@ -897,6 +895,10 @@ if (elements.captureJD) {
   });
 }
 
+if (elements.uploadPdf) {
+  elements.uploadPdf.addEventListener("change", handlePdfUpload);
+}
+
 if (elements.tailorNow) {
   elements.tailorNow.addEventListener("click", handleTailorNow);
 }
@@ -1000,7 +1002,7 @@ if (elements.refreshModelStatus) {
   elements.refreshModelStatus.addEventListener("click", async () => {
     try {
       console.log("Refreshing model status...");
-      await refreshApiStatuses();
+      await checkSummarizerAvailability();
     } catch (error) {
       console.error("Failed to refresh model status:", error);
       showError(`Failed to check model status: ${error.message}`);
